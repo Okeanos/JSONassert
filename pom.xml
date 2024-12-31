@@ -69,8 +69,14 @@
     <build>
         <plugins>
             <!--
-                This Plugin needs to go first so that the expected properties can be relied on by
-                e.g. the Maven Toolchains Plugin.
+                Plugin declaration order is the deciding factor when the same phase is targeted
+                builder-helper-maven-plugin has to execute before maven-toolchains-plugin or else
+                the expected property will not be available because the selected goals run in the
+                same phase by default (`validate`).
+                See:
+                - https://maven.apache.org/ref/3.9.8/maven-core/lifecycles.html
+                - https://www.mojohaus.org/build-helper-maven-plugin/parse-version-mojo.html
+                - https://maven.apache.org/plugins/maven-toolchains-plugin/select-jdk-toolchain-mojo.html
             -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -87,18 +93,10 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
-                <configuration>
-                    <!--
-                        Ensure that the correct compiler is used independently of the Maven runtime selection.
-                        This is also important in case the JDK/JVM runtime args need to be modified for compilation e.g. for Google Error-Prone integration. 
-                    -->
-                    <fork>true</fork>
-                </configuration>
-            </plugin>
+            <!--
+                Maven Toolchains has to be declared before the compiler plugin
+                or else the wrong JDK/JVM will be used for compilation.
+            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-toolchains-plugin</artifactId>
@@ -110,6 +108,18 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <!--
+                        Ensure that the correct compiler is used independently of the Maven runtime selection.
+                        This is also important in case the JDK/JVM runtime args need to be modified for compilation e.g. for Google Error-Prone integration. 
+                    -->
+                    <fork>true</fork>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
