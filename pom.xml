@@ -12,7 +12,12 @@
     <url>https://github.com/skyscreamer/JSONassert</url>
 
     <properties>
-        <maven.compiler.release>8</maven.compiler.release>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <maven.compiler.encoding>${project.build.sourceEncoding}</maven.compiler.encoding>
+        <toolchain.jdk.version>[${java.version},${parsedVersion.nextMajorVersion})</toolchain.jdk.version>
     </properties>
 
     <licenses>
@@ -62,10 +67,41 @@
 
     <build>
         <plugins>
+            <!--
+                This Plugin needs to go first so that the expected properties can be relied on by
+                e.g. the Maven Toolchains Plugin.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                        <configuration>
+                            <versionString>${java.version}</versionString>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>select-jdk-toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
@@ -100,6 +136,19 @@
     </distributionManagement>
 
     <profiles>
+        <profile>
+            <id>legacy-java</id>
+            <!-- Automatically activate if the runtime JDK is Java 8 or below -->
+            <activation>
+                <jdk>(,1.8]</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.source>${java.version}</maven.compiler.source>
+                <maven.compiler.target>${java.version}</maven.compiler.target>
+                <!-- Unset the release flag that isn't supported by Java 8 and below -->
+                <maven.compiler.release></maven.compiler.release>
+            </properties>
+        </profile>
         <profile>
             <id>deploy</id>
             <build>

@@ -1,6 +1,4 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
+# yaml-language-server:$schema=https://json.schemastore.org/github-workflow.json
 name: Java CI with Maven
 
 on:
@@ -8,62 +6,67 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
+# https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
 permissions:
   contents: read
 
 jobs:
-  build-6:
+  legacy-java:
     runs-on: ubuntu-latest
-    name: Java 6
+    strategy:
+      matrix:
+        java: [ 6, 8 ]
+    name: Java ${{ matrix.java }}
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # JDK 11 is required for Maven itself as runtime 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: |
-            6
+            ${{ matrix.java }}
             11
       - name: Setup Maven
         run: |
           mkdir -p .mvn
           echo "-B" > .mvn/maven.config
-      - name: Compile with Java 6
-        run: mvn clean compile -Dmaven.toolchains.jdk.id=zulu_6 -P java-6,!legacy-java,!modern-java
-      - name: Run Tests with Java 6
-        run: mvn test -Dmaven.toolchains.jdk.id=zulu_6 -P java-6,!legacy-java,!modern-java
-      - name: Build Test Report for Java 6
+      - name: Compile with Java ${{ matrix.java }}
+        run: mvn clean compile -P=legacy-java -Djava.version="1.${{ matrix.java }}"
+      - name: Run Tests with Java ${{ matrix.java }}
+        run: mvn test -P=legacy-java -Djava.version="1.${{ matrix.java }}"
+      - name: Build Test Report for Java ${{ matrix.java }}
         if: ${{ always() }}
         run: |
           mvn surefire-report:report-only
           mvn site -DgenerateReports=false
-      - name: Upload Test Results for Java 6
+      - name: Upload Test Results for Java ${{ matrix.java }}
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Test Results for Java 6
+          name: Test Results for Java ${{ matrix.java }}
           path: target/surefire-reports/
-      - name: Upload Test Report 6
+      - name: Upload Test Report ${{ matrix.java }}
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Test Report for Java 6
+          name: Test Report for Java ${{ matrix.java }}
           path: target/site/
 
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ 8, 11, 17 ]
+        java: [ 11, 17, 21 ]
     name: Java ${{ matrix.java }}
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: ${{ matrix.java }}
@@ -72,9 +75,9 @@ jobs:
           mkdir -p .mvn
           echo "-B" > .mvn/maven.config
       - name: Compile with Java ${{ matrix.java }}
-        run: mvn clean compile
+        run: mvn clean compile -Djava.version="${{ matrix.java }}"
       - name: Run Tests with Java ${{ matrix.java }}
-        run: mvn test
+        run: mvn test -Djava.version="${{ matrix.java }}"
       - name: Build Test Report for Java ${{ matrix.java }}
         if: ${{ always() }}
         run: |
@@ -82,13 +85,13 @@ jobs:
           mvn site -DgenerateReports=false
       - name: Upload Test Results for Java ${{ matrix.java }}
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Test Results for Java ${{ matrix.java }}
           path: target/surefire-reports/
       - name: Upload Test Report ${{ matrix.java }}
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Test Report for Java ${{ matrix.java }}
           path: target/site/
