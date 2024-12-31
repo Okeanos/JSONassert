@@ -90,6 +90,13 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
+                <configuration>
+                    <!--
+                        Ensure that the correct compiler is used independently of the Maven runtime selection.
+                        This is also important in case the JDK/JVM runtime args need to be modified for compilation e.g. for Google Error-Prone integration. 
+                    -->
+                    <fork>true</fork>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
