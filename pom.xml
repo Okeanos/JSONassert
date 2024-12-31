@@ -12,11 +12,12 @@
     <url>https://github.com/skyscreamer/JSONassert</url>
 
     <properties>
-        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
-        <maven.compiler.release>${java.version}</maven.compiler.release>
         <maven.compiler.encoding>${project.build.sourceEncoding}</maven.compiler.encoding>
+
+        <java.version>1.8</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <toolchain.jdk.version>[${java.version},${parsedVersion.nextMajorVersion})</toolchain.jdk.version>
     </properties>
 
